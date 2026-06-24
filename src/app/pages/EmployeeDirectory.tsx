@@ -185,7 +185,7 @@ export function EmployeeDirectory() {
                 </div>
                 <div>
                   <label className="block text-xs text-[#94a3b8] mb-1.5">Employee ID *</label>
-                  <input value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="w-full bg-[#0B0F19] text-white px-3 py-2 rounded-lg border border-[rgba(148,163,184,0.2)] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm" placeholder="EMP-011" />
+                  <input value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="w-full bg-[#0B0F19] text-white px-3 py-2 rounded-lg border border-[rgba(148,163,184,0.2)] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm" placeholder="e.g. EMP-011" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -202,12 +202,12 @@ export function EmployeeDirectory() {
               </div>
               <div>
                 <label className="block text-xs text-[#94a3b8] mb-1.5">Email *</label>
-                <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" className="w-full bg-[#0B0F19] text-white px-3 py-2 rounded-lg border border-[rgba(148,163,184,0.2)] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm" placeholder="john@attendpro.com" />
+                <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" className="w-full bg-[#0B0F19] text-white px-3 py-2 rounded-lg border border-[rgba(148,163,184,0.2)] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm" placeholder="e.g. john@company.com" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-[#94a3b8] mb-1.5">Phone</label>
-                  <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full bg-[#0B0F19] text-white px-3 py-2 rounded-lg border border-[rgba(148,163,184,0.2)] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm" placeholder="+1 555-0000" />
+                  <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full bg-[#0B0F19] text-white px-3 py-2 rounded-lg border border-[rgba(148,163,184,0.2)] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm" placeholder="e.g. +1 555-0000" />
                 </div>
                 <div>
                   <label className="block text-xs text-[#94a3b8] mb-1.5">Join Date</label>

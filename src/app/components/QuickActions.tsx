@@ -1,17 +1,25 @@
-import { useEffect, useState } from 'react';
-import { FileText, UserCheck, Edit } from 'lucide-react';
-import { getQuickStats } from '../../store/dataStore';
+import { useEffect, useState } from "react";
+import { FileText, UserCheck, Edit } from "lucide-react";
+import { getQuickStats } from "../../store/dataStore";
 
 export function QuickActions() {
-  const [stats, setStats] = useState({ avgAttendance: '—', monthCheckIns: '—', peakHours: '8:30 - 9:00 AM' });
+  const [stats, setStats] = useState({
+    avgAttendance: "—",
+    monthCheckIns: "—",
+    workHours: "—",
+  });
 
-  useEffect(() => { setStats(getQuickStats()); }, []);
+  useEffect(() => {
+    setStats(getQuickStats());
+  }, []);
 
   return (
     <div className="bg-[#1E293B] border border-[rgba(148,163,184,0.2)] rounded-xl p-6">
       <div className="mb-6">
         <h3 className="text-lg font-bold text-white">Quick Actions</h3>
-        <p className="text-sm text-[#94a3b8] mt-1">Common administrative tasks</p>
+        <p className="text-sm text-[#94a3b8] mt-1">
+          Common administrative tasks
+        </p>
       </div>
 
       <div className="space-y-3">
@@ -33,15 +41,22 @@ export function QuickActions() {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-sm text-[#94a3b8]">Average Attendance</span>
-            <span className="text-sm font-medium text-[#D4AF37]">{stats.avgAttendance}</span>
+            <span className="text-sm font-medium text-[#D4AF37]">
+              {stats.avgAttendance}
+            </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-[#94a3b8]">This Month</span>
-            <span className="text-sm font-medium text-white">{stats.monthCheckIns} check-ins</span>
+            <span className="text-sm font-medium text-white">
+              {stats.monthCheckIns}{" "}
+              {stats.monthCheckIns !== "—" ? "check-ins" : ""}
+            </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-[#94a3b8]">Peak Hours</span>
-            <span className="text-sm font-medium text-white">{stats.peakHours}</span>
+            <span className="text-sm text-[#94a3b8]">Work Hours</span>
+            <span className="text-sm font-medium text-white">
+              {stats.workHours}
+            </span>
           </div>
         </div>
       </div>

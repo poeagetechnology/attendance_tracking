@@ -1,20 +1,28 @@
-import { useEffect, useState } from 'react';
-import { Users, UserCheck, UserX, FileText } from 'lucide-react';
-import { MetricCard } from '../components/MetricCard';
-import { AttendanceTable } from '../components/AttendanceTable';
-import { WeeklyChart } from '../components/WeeklyChart';
-import { QuickActions } from '../components/QuickActions';
-import { getDashboardMetrics } from '../../store/dataStore';
+import { useEffect, useState } from "react";
+import { Users, UserCheck, UserX, FileText } from "lucide-react";
+import { MetricCard } from "../components/MetricCard";
+import { AttendanceTable } from "../components/AttendanceTable";
+import { WeeklyChart } from "../components/WeeklyChart";
+import { QuickActions } from "../components/QuickActions";
+import { getDashboardMetrics } from "../../store/dataStore";
 
 export function Dashboard() {
-  const [metrics, setMetrics] = useState({ totalEmployees: 0, presentToday: 0, absentLate: 0, pendingLeave: 0 });
+  const [metrics, setMetrics] = useState({
+    totalEmployees: 0,
+    presentToday: 0,
+    absentLate: 0,
+    pendingLeave: 0,
+  });
 
-  useEffect(() => { setMetrics(getDashboardMetrics()); }, []);
+  useEffect(() => {
+    setMetrics(getDashboardMetrics());
+  }, []);
 
-  const yesterdayPresent = metrics.presentToday - 1;
-  const absentPct = metrics.totalEmployees > 0
-    ? `${((metrics.absentLate / metrics.totalEmployees) * 100).toFixed(0)}% of workforce`
-    : '—';
+  const totalActive = metrics.totalEmployees;
+  const absentPct =
+    totalActive > 0
+      ? `${((metrics.absentLate / totalActive) * 100).toFixed(0)}% of workforce`
+      : "—";
 
   return (
     <main className="p-8">
@@ -30,21 +38,20 @@ export function Dashboard() {
           title="Present Today"
           value={metrics.presentToday}
           icon={<UserCheck className="w-6 h-6 text-emerald-400" />}
-          badgeText={yesterdayPresent >= 0 ? `+${yesterdayPresent} from yesterday` : `${yesterdayPresent} from yesterday`}
           badgeColor="success"
         />
         <MetricCard
-          title="Absent/Late"
+          title="Absent / Late"
           value={metrics.absentLate}
           icon={<UserX className="w-6 h-6 text-amber-400" />}
-          badgeText={absentPct}
+          badgeText={totalActive > 0 ? absentPct : undefined}
           badgeColor="warning"
         />
         <MetricCard
           title="Pending Leave Requests"
           value={metrics.pendingLeave}
           icon={<FileText className="w-6 h-6 text-[#D4AF37]" />}
-          badgeText="Requires action"
+          badgeText={metrics.pendingLeave > 0 ? "Requires action" : undefined}
           badgeColor="gold"
         />
       </div>

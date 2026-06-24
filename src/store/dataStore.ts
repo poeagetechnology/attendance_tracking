@@ -44,33 +44,32 @@ export interface LeaveRequest {
 }
 
 export interface Settings {
+  appName: string;
   companyName: string;
   workStartTime: string;
   workEndTime: string;
   lateThresholdMinutes: number;
   adminName: string;
   adminEmail: string;
+  adminRole: string;
   notificationsEnabled: boolean;
   weekendDays: string[];
 }
 
-const DEFAULT_EMPLOYEES: Employee[] = [];
-
-const TODAY = new Date().toISOString().split("T")[0];
-
-const DEFAULT_ATTENDANCE: AttendanceRecord[] = [];
-
-const DEFAULT_LEAVE_REQUESTS: LeaveRequest[] = [];
+// Increment this string whenever defaults change to force-clear stale localStorage
+const STORE_VERSION = "3";
 
 const DEFAULT_SETTINGS: Settings = {
-  companyName: "Company Name",
-  workStartTime: "09:00",
-  workEndTime: "17:00",
+  appName: "",
+  companyName: "",
+  workStartTime: "",
+  workEndTime: "",
   lateThresholdMinutes: 15,
-  adminName: "Admin",
-  adminEmail: "admin@company.com",
+  adminName: "",
+  adminEmail: "",
+  adminRole: "",
   notificationsEnabled: true,
-  weekendDays: ["Saturday", "Sunday"],
+  weekendDays: [],
 };
 
 function load<T>(key: string, fallback: T): T {
@@ -86,33 +85,33 @@ function save<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-// Initialize localStorage with defaults on first run
+// Clears stale data when STORE_VERSION changes, then seeds empty collections
 export function initStore(): void {
-  if (!localStorage.getItem("attendpro_initialized")) {
-    save("attendpro_employees", DEFAULT_EMPLOYEES);
-    save("attendpro_attendance", DEFAULT_ATTENDANCE);
-    save("attendpro_leave", DEFAULT_LEAVE_REQUESTS);
+  if (localStorage.getItem("attendpro_version") !== STORE_VERSION) {
+    localStorage.clear();
+    save("attendpro_employees", [] as Employee[]);
+    save("attendpro_attendance", [] as AttendanceRecord[]);
+    save("attendpro_leave", [] as LeaveRequest[]);
     save("attendpro_settings", DEFAULT_SETTINGS);
-    save("attendpro_initialized", "true");
+    save("attendpro_version", STORE_VERSION);
   }
 }
 
 // Employees
 export function getEmployees(): Employee[] {
-  return load("attendpro_employees", DEFAULT_EMPLOYEES);
+  return load("attendpro_employees", [] as Employee[]);
 }
 export function saveEmployees(employees: Employee[]): void {
   save("attendpro_employees", employees);
 }
 export function addEmployee(employee: Employee): void {
-  const employees = getEmployees();
-  save("attendpro_employees", [...employees, employee]);
+  save("attendpro_employees", [...getEmployees(), employee]);
 }
 export function updateEmployee(updated: Employee): void {
-  const employees = getEmployees().map((e) =>
-    e.id === updated.id ? updated : e,
+  save(
+    "attendpro_employees",
+    getEmployees().map((e) => (e.id === updated.id ? updated : e)),
   );
-  save("attendpro_employees", employees);
 }
 export function deleteEmployee(id: string): void {
   save(
@@ -123,38 +122,36 @@ export function deleteEmployee(id: string): void {
 
 // Attendance
 export function getAttendance(): AttendanceRecord[] {
-  return load("attendpro_attendance", DEFAULT_ATTENDANCE);
+  return load("attendpro_attendance", [] as AttendanceRecord[]);
 }
 export function saveAttendance(records: AttendanceRecord[]): void {
   save("attendpro_attendance", records);
 }
 export function addAttendanceRecord(record: AttendanceRecord): void {
-  const records = getAttendance();
-  save("attendpro_attendance", [...records, record]);
+  save("attendpro_attendance", [...getAttendance(), record]);
 }
 export function updateAttendanceRecord(updated: AttendanceRecord): void {
-  const records = getAttendance().map((r) =>
-    r.id === updated.id ? updated : r,
+  save(
+    "attendpro_attendance",
+    getAttendance().map((r) => (r.id === updated.id ? updated : r)),
   );
-  save("attendpro_attendance", records);
 }
 
 // Leave
 export function getLeaveRequests(): LeaveRequest[] {
-  return load("attendpro_leave", DEFAULT_LEAVE_REQUESTS);
+  return load("attendpro_leave", [] as LeaveRequest[]);
 }
 export function saveLeaveRequests(requests: LeaveRequest[]): void {
   save("attendpro_leave", requests);
 }
 export function addLeaveRequest(request: LeaveRequest): void {
-  const requests = getLeaveRequests();
-  save("attendpro_leave", [...requests, request]);
+  save("attendpro_leave", [...getLeaveRequests(), request]);
 }
 export function updateLeaveRequest(updated: LeaveRequest): void {
-  const requests = getLeaveRequests().map((r) =>
-    r.id === updated.id ? updated : r,
+  save(
+    "attendpro_leave",
+    getLeaveRequests().map((r) => (r.id === updated.id ? updated : r)),
   );
-  save("attendpro_leave", requests);
 }
 
 // Settings
@@ -165,7 +162,7 @@ export function saveSettings(settings: Settings): void {
   save("attendpro_settings", settings);
 }
 
-// Derived metrics (computed from live data, no duplicates)
+// Derived metrics — computed from live data only
 export function getDashboardMetrics() {
   const employees = getEmployees();
   const attendance = getAttendance();
@@ -207,23 +204,29 @@ export function getWeeklyChartData() {
 
 export function getQuickStats() {
   const attendance = getAttendance();
+  const settings = getSettings();
   const today = new Date().toISOString().split("T")[0];
   const currentMonth = today.slice(0, 7);
-  const monthRecords = attendance.filter(
+
+  const monthCheckIns = attendance.filter(
     (r) =>
       r.date.startsWith(currentMonth) &&
       (r.status === "On Time" || r.status === "Late"),
-  );
+  ).length;
+
   const allPresent = attendance.filter(
     (r) => r.status === "On Time" || r.status === "Late",
   ).length;
   const allTotal = attendance.length;
   const avgRate =
-    allTotal > 0 ? ((allPresent / allTotal) * 100).toFixed(1) : "0.0";
+    allTotal > 0 ? ((allPresent / allTotal) * 100).toFixed(1) : null;
 
   return {
-    avgAttendance: `${avgRate}%`,
-    monthCheckIns: monthRecords.length.toLocaleString(),
-    peakHours: "8:30 - 9:00 AM",
+    avgAttendance: avgRate !== null ? `${avgRate}%` : "—",
+    monthCheckIns: monthCheckIns > 0 ? monthCheckIns.toLocaleString() : "—",
+    workHours:
+      settings.workStartTime && settings.workEndTime
+        ? `${settings.workStartTime} – ${settings.workEndTime}`
+        : "—",
   };
 }

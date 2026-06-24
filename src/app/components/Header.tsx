@@ -1,14 +1,14 @@
-import { Search, Bell, ChevronDown } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { getSettings } from '../../store/dataStore';
+import { Search, Bell, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getSettings } from "../../store/dataStore";
 
 const PAGE_TITLES: Record<string, string> = {
-  '/': 'Attendance Overview',
-  '/employees': 'Employee Directory',
-  '/attendance': 'Attendance Logs',
-  '/leave': 'Leave Requests',
-  '/analytics': 'Analytics',
-  '/settings': 'Settings',
+  "/": "Attendance Overview",
+  "/employees": "Employee Directory",
+  "/attendance": "Attendance Logs",
+  "/leave": "Leave Requests",
+  "/analytics": "Analytics",
+  "/settings": "Settings",
 };
 
 interface HeaderProps {
@@ -17,25 +17,44 @@ interface HeaderProps {
 }
 
 export function Header({ activePage, onSearch }: HeaderProps) {
-  const [adminName, setAdminName] = useState('Admin User');
-  const [adminInitials, setAdminInitials] = useState('AU');
-  const [search, setSearch] = useState('');
+  const [adminName, setAdminName] = useState("");
+  const [adminRole, setAdminRole] = useState("");
+  const [adminInitials, setAdminInitials] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const settings = getSettings();
-    setAdminName(settings.adminName);
-    setAdminInitials(settings.adminName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase());
+    function sync() {
+      const s = getSettings();
+      setAdminName(s.adminName);
+      setAdminRole(s.adminRole);
+      setAdminInitials(
+        s.adminName
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase(),
+      );
+    }
+    sync();
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
   }, [activePage]);
 
-  const currentDate = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return (
     <header className="bg-[#0B0F19] border-b border-[rgba(148,163,184,0.2)] px-8 py-4 sticky top-0 z-40">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-1">{PAGE_TITLES[activePage] ?? 'Dashboard'}</h2>
+          <h2 className="text-2xl font-bold text-white mb-1">
+            {PAGE_TITLES[activePage] ?? "Dashboard"}
+          </h2>
           <p className="text-sm text-[#94a3b8]">{currentDate}</p>
         </div>
 
@@ -46,7 +65,10 @@ export function Header({ activePage, onSearch }: HeaderProps) {
               type="text"
               placeholder="Search employee, ID..."
               value={search}
-              onChange={e => { setSearch(e.target.value); onSearch?.(e.target.value); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                onSearch?.(e.target.value);
+              }}
               className="bg-[#1E293B] text-white placeholder:text-[#94a3b8] pl-10 pr-4 py-2 rounded-lg border border-[rgba(148,163,184,0.2)] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] w-64"
             />
           </div>
@@ -58,16 +80,24 @@ export function Header({ activePage, onSearch }: HeaderProps) {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 pl-4 border-l border-[rgba(148,163,184,0.2)]">
-            <div className="text-right">
-              <p className="text-sm font-medium text-white">{adminName}</p>
-              <p className="text-xs text-[#94a3b8]">Super Admin</p>
+          {(adminName || adminRole) && (
+            <div className="flex items-center gap-3 pl-4 border-l border-[rgba(148,163,184,0.2)]">
+              <div className="text-right">
+                {adminName && (
+                  <p className="text-sm font-medium text-white">{adminName}</p>
+                )}
+                {adminRole && (
+                  <p className="text-xs text-[#94a3b8]">{adminRole}</p>
+                )}
+              </div>
+              {adminInitials && (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#B8941E] flex items-center justify-center font-bold text-[#0B0F19]">
+                  {adminInitials}
+                </div>
+              )}
+              <ChevronDown className="w-4 h-4 text-[#94a3b8]" />
             </div>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#B8941E] flex items-center justify-center font-bold text-[#0B0F19]">
-              {adminInitials}
-            </div>
-            <ChevronDown className="w-4 h-4 text-[#94a3b8]" />
-          </div>
+          )}
         </div>
       </div>
     </header>
