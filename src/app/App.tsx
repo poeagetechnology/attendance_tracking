@@ -1,71 +1,53 @@
-import { Users, UserCheck, UserX, FileText } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { MetricCard } from './components/MetricCard';
-import { AttendanceTable } from './components/AttendanceTable';
-import { WeeklyChart } from './components/WeeklyChart';
-import { QuickActions } from './components/QuickActions';
+import { Dashboard } from './pages/Dashboard';
+import { EmployeeDirectory } from './pages/EmployeeDirectory';
+import { AttendanceLogs } from './pages/AttendanceLogs';
+import { LeaveRequests } from './pages/LeaveRequests';
+import { Analytics } from './pages/Analytics';
+import { SettingsPage } from './pages/Settings';
+import { initStore } from '../store/dataStore';
+
+initStore();
+
+function getInitialPage(): string {
+  return window.location.hash.replace('#', '') || '/';
+}
 
 export default function App() {
+  const [activePage, setActivePage] = useState(getInitialPage);
+
+  useEffect(() => {
+    function onHashChange() {
+      setActivePage(window.location.hash.replace('#', '') || '/');
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  function navigate(href: string) {
+    window.location.hash = href;
+    setActivePage(href);
+  }
+
+  function renderPage() {
+    switch (activePage) {
+      case '/employees': return <EmployeeDirectory />;
+      case '/attendance': return <AttendanceLogs />;
+      case '/leave': return <LeaveRequests />;
+      case '/analytics': return <Analytics />;
+      case '/settings': return <SettingsPage />;
+      default: return <Dashboard />;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#0B0F19] dark">
-      {/* Sidebar */}
-      <Sidebar />
-
-      {/* Main Content Area */}
+      <Sidebar activePage={activePage} onNavigate={navigate} />
       <div className="ml-64">
-        {/* Header */}
-        <Header />
-
-        {/* Main Content */}
-        <main className="p-8">
-          {/* Key Metrics Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <MetricCard
-              title="Total Employees"
-              value="250"
-              icon={<Users className="w-6 h-6 text-[#94a3b8]" />}
-              badgeText="Active"
-              badgeColor="neutral"
-            />
-            <MetricCard
-              title="Present Today"
-              value="235"
-              icon={<UserCheck className="w-6 h-6 text-emerald-400" />}
-              badgeText="+5 from yesterday"
-              badgeColor="success"
-            />
-            <MetricCard
-              title="Absent/Late"
-              value="15"
-              icon={<UserX className="w-6 h-6 text-amber-400" />}
-              badgeText="6% of workforce"
-              badgeColor="warning"
-            />
-            <MetricCard
-              title="Pending Leave Requests"
-              value="8"
-              icon={<FileText className="w-6 h-6 text-[#D4AF37]" />}
-              badgeText="Requires action"
-              badgeColor="gold"
-            />
-          </div>
-
-          {/* Attendance Table */}
-          <div className="mb-8">
-            <AttendanceTable />
-          </div>
-
-          {/* Analytics & Quick Actions Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3">
-              <WeeklyChart />
-            </div>
-            <div className="lg:col-span-2">
-              <QuickActions />
-            </div>
-          </div>
-        </main>
+        <Header activePage={activePage} />
+        {renderPage()}
       </div>
     </div>
   );
